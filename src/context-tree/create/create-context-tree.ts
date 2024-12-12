@@ -6,6 +6,7 @@ import {
 } from "../../metadata-cache-util/heading";
 import {
   getListBreadcrumbs,
+  getListItem,
   getListItemIndexContaining,
   getListItemWithDescendants,
   isPositionInList,
@@ -16,10 +17,12 @@ import {
 } from "../../metadata-cache-util/section";
 import {
   getTextAtPosition,
+  getTextFromLineStartToPositionEnd,
   isSamePosition,
 } from "../../metadata-cache-util/position";
 import { formatListWithDescendants } from "../../metadata-cache-util/format";
 
+// this function runs for every match of the query
 export function createContextTree({
   positions,
   fileContents,
@@ -42,6 +45,7 @@ export function createContextTree({
   // @ts-ignore
   const root = createContextTreeBranch("file", {}, stat, filePath, filePath);
 
+  //this for loop iterates over each match of the query. the position for each match is the position of only the tag that caused the match, not the whole line
   for (const {
     headingBreadcrumbs,
     listBreadcrumbs,
@@ -97,6 +101,17 @@ export function createContextTree({
       }
     }
 
+    const lineText = getTextFromLineStartToPositionEnd(fileContents, position.position).trim()
+    context.sectionsWithMatches.push({
+      cache: {
+        type: "line",
+        position: position.position,
+      },
+      text: lineText,
+      filePath,
+    });
+    continue;
+    
     // todo: move to metadata-cache-util
     const headingIndexAtPosition = getHeadingIndexContaining(
       position.position,
@@ -111,7 +126,7 @@ export function createContextTree({
         position.position,
         listItems,
       );
-      const listItemCacheWithDescendants = getListItemWithDescendants(
+      const listItemCacheWithDescendants = getListItem(
         indexOfListItemContainingLink,
         listItems,
       );
@@ -134,7 +149,7 @@ export function createContextTree({
       );
 
       if (firstSectionUnderHeading) {
-        context.sectionsWithMatches.push({
+                context.sectionsWithMatches.push({
           cache: firstSectionUnderHeading,
           text: getTextAtPosition(
             fileContents,

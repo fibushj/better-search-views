@@ -1,6 +1,14 @@
 import { ListItemCache, Pos } from "obsidian";
 import { doesPositionIncludeAnother } from "./position";
 
+export function getListItem(
+  listItemIndex: number,
+  listItems: ListItemCache[]
+) {
+  const rootListItem = listItems[listItemIndex];
+  return [rootListItem];
+}
+
 export function getListItemWithDescendants(
   listItemIndex: number,
   listItems: ListItemCache[]
